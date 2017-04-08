@@ -1,0 +1,20 @@
+/*
+ *
+ * plexdeck
+ *
+ * Robert Shippey
+ * MIT Licensed.
+ *
+ * Custom here your css module
+ *
+ */
+
+.plexdeck img.thumbnail {
+	max-height: 2em;
+	width: auto;
+    margin-bottom: -13px;
+}
+
+.plexdeck .show {
+	margin-left: 5px;
+}
