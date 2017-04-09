@@ -12,6 +12,7 @@ var config = {
     modules: [
         {
             module: 'plexdeck',
+            header: 'Plex On Deck',
             config: {
                 plexURL: 'http://192.168.0.1:32400'
             }
@@ -26,3 +27,7 @@ var config = {
 |----------------- |-----------
 | `plexURL`        | *Required* The URL of your plex server
 | `updateInterval`        | *Optional* How often to refresh 'On Deck' <br><br>**Type:** `int`(milliseconds) <br>Default 300,000 milliseconds (5 minutes)
+
+## Contributing
+
+Contributions of all kinds are welcome, not only in the form of code but also bug reports, documentation edits, and suggested improvements.
