@@ -101,7 +101,7 @@
 				cover.className = "thumbnail";
 
 				var title = document.createElement("span");
-				title.className = "normal small show";
+				title.className = "bright small show";
 				title.innerHTML = element.grandparentTitle 
 				+ " – "
 				+ element.title;
