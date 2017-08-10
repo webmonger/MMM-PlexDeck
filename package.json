@@ -1,8 +1,8 @@
 {
-  "name": "plexdeck",
+  "name": "MMM-plexdeck",
   "version": "1.0.0",
   "description": "Plex On Deck module for Magic Mirror",
-  "main": "plexdeck.js",
+  "main": "MMM-plexdeck.js",
   "author": "Robert Shippey",
   "license": "MIT",
   "devDependencies": {

@@ -9,12 +9,12 @@
  *
  */
 
-.plexdeck img.thumbnail {
+.MMM-plexdeck img.thumbnail {
 	max-height: 2em;
 	width: auto;
     margin-bottom: -13px;
 }
 
-.plexdeck .show {
+.MMM-plexdeck .show {
 	margin-left: 5px;
 }
