@@ -27,6 +27,9 @@ var config = {
 |----------------- |-----------
 | `plexURL`        | *Required* The URL of your plex server
 | `updateInterval`        | *Optional* How often to refresh 'On Deck' <br><br>**Type:** `int`(milliseconds) <br>Default 300,000 milliseconds (5 minutes)
+| `securityToken`        | *Optional* For servers with security setup you'll need to find your X-Plex-Token and insert it here
+| `sortByLatest`        | *Optional* Bool (but any value will work) orders the output so it displayed the latest release dates first
+| `countToDisplay`        | *Optional* Limits the number of records displayed in the list
 
 ## Contributing
 
