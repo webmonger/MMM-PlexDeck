@@ -7,156 +7,172 @@
  * MIT Licensed.
  */
 
- Module.register("plexdeck", {
- 	defaults: {
- 		updateInterval: 300000,
- 		retryDelay: 5000
- 	},
-
-	requiresVersion: "2.1.0", // Required version of MagicMirror
-
-	start: function() {
-		var self = this;
-		var dataRequest = null;
-		var dataNotification = null;
-
-		//Flag for check if module is loaded
-		this.loaded = false;
-
-		// Schedule update timer.
-		this.getData();
-		setInterval(function() {
-			self.updateDom();
-		}, this.config.updateInterval);
+Module.register("plexdeck", {
+	defaults: {
+		updateInterval: 300000,
+		retryDelay: 5000
 	},
 
-	/*
-	 * getData
-	 * function example return data and show it in the module wrapper
-	 * get a URL request
-	 *
-	 */
-	 getData: function() {
-	 	var self = this;
+ requiresVersion: "2.1.0", // Required version of MagicMirror
 
-	 	var urlApi = this.config.plexURL + "/library/onDeck";
-	 	var retry = true;
+ start: function() {
+	 var self = this;
+	 var dataRequest = null;
+	 var dataNotification = null;
 
-	 	var dataRequest = new XMLHttpRequest();
+	 //Flag for check if module is loaded
+	 this.loaded = false;
 
-	 	dataRequest.open("GET", urlApi, true);
-	 	dataRequest.setRequestHeader("Accept", "application/json");
-	 	dataRequest.onreadystatechange = function() {
-	 		if (this.readyState === 4) {
-	 			if (this.status === 200) {
-	 				self.processData(JSON.parse(this.response));
-	 			} else if (this.status === 401) {
-	 				self.updateDom(self.config.animationSpeed);
-	 				Log.error(self.name, this.status);
-	 				retry = false;
-	 			} else {
-	 				Log.error(self.name, "Could not load data.");
-	 			}
-	 			if (retry) {
-	 				self.scheduleUpdate((self.loaded) ? -1 : self.config.retryDelay);
-	 			}
-	 		}
-	 	};
-	 	dataRequest.send();
-	 },
+	 // Schedule update timer.
+	 this.getData();
+	 setInterval(function() {
+		 self.updateDom();
+	 }, this.config.updateInterval);
+ },
+
+ /*
+	* getData
+	* function example return data and show it in the module wrapper
+	* get a URL request
+	*
+	*/
+	getData: function() {
+		var self = this;
+
+		var plexToken = (this.config.securityToken != undefined) ? "?X-Plex-Token=" + this.config.securityToken : "";
+
+		var urlApi = this.config.plexURL + "/library/onDeck";
+		urlApi += plexToken;
+		var retry = true;
+
+		var dataRequest = new XMLHttpRequest();
+
+		dataRequest.open("GET", urlApi, true);
+		dataRequest.setRequestHeader("Accept", "application/json");
+		dataRequest.onreadystatechange = function() {
+			if (this.readyState === 4) {
+				if (this.status === 200) {
+					self.processData(JSON.parse(this.response));
+				} else if (this.status === 401) {
+					self.updateDom(self.config.animationSpeed);
+					Log.error(self.name, this.status);
+					retry = false;
+				} else {
+					Log.error(self.name, "Could not load data.");
+				}
+				if (retry) {
+					self.scheduleUpdate((self.loaded) ? -1 : self.config.retryDelay);
+				}
+			}
+		};
+		dataRequest.send();
+	},
 
 
-	/* scheduleUpdate()
-	 * Schedule next update.
-	 *
-	 * argument delay number - Milliseconds before next update.
-	 *  If empty, this.config.updateInterval is used.
-	 */
-	 scheduleUpdate: function(delay) {
-	 	var nextLoad = this.config.updateInterval;
-	 	if (typeof delay !== "undefined" && delay >= 0) {
-	 		nextLoad = delay;
-	 	}
-	 	nextLoad = nextLoad ;
-	 	var self = this;
-	 	setTimeout(function() {
-	 		self.getData();
-	 	}, nextLoad);
-	 },
+ /* scheduleUpdate()
+	* Schedule next update.
+	*
+	* argument delay number - Milliseconds before next update.
+	*  If empty, this.config.updateInterval is used.
+	*/
+	scheduleUpdate: function(delay) {
+		var nextLoad = this.config.updateInterval;
+		if (typeof delay !== "undefined" && delay >= 0) {
+			nextLoad = delay;
+		}
+		nextLoad = nextLoad ;
+		var self = this;
+		setTimeout(function() {
+			self.getData();
+		}, nextLoad);
+	},
 
-	 getDom: function() {
-	 	var self = this;
+	getDom: function() {
+		var self = this;
+
+		var plexToken = (this.config.securityToken != undefined) ? "?X-Plex-Token=" + this.config.securityToken : "";
 
 		// create element wrapper for show into the module
 		var table = document.createElement("table");
 		// If this.dataRequest is not empty
 		if (this.dataRequest) {
 
-			this.dataRequest.MediaContainer.Metadata.forEach(function(element) {
+			var metadata = this.dataRequest.MediaContainer.Metadata;
 
-				var show = document.createElement("tr");
+			metadata = (this.config.sortByLatest != undefined) ? metadata.sort(self.sortByLatest) : metadata;
 
-				var cover = new Image();
-				cover.src = self.config.plexURL + element.grandparentArt;
-				cover.className = "thumbnail";
+			metadata = (this.config.countToDisplay != undefined) ? metadata.slice(0, this.config.countToDisplay) : metadata;
 
-				var title = document.createElement("span");
-				title.className = "bright small show";
-				title.innerHTML = element.grandparentTitle 
-				+ " – "
-				+ element.title;
+			metadata.forEach(function(element) {
 
-				var coverTD = document.createElement("td");
-				var titleTD = document.createElement("td");
+			 var show = document.createElement("tr");
 
-				coverTD.appendChild(cover);
-				titleTD.appendChild(title);
+			 var cover = new Image();
+			 var coverArt = (element.grandparentArt != null) ? self.config.plexURL + element.grandparentArt + plexToken : self.config.plexURL + element.art + plexToken;
+			 cover.src = coverArt
+			 cover.className = "thumbnail";
 
-				show.appendChild(coverTD);
-				show.appendChild(titleTD);
+			 var title = document.createElement("span");
+			 title.className = "bright small show";
+			 title.innerHTML = (element.grandparentTitle != undefined) ? element.grandparentTitle + " – " + element.title : element.title;
 
-				table.appendChild(show);
-			});
+			 var coverTD = document.createElement("td");
+			 var titleTD = document.createElement("td");
 
-		}
-		
-		return table;
-	},
+			 coverTD.appendChild(cover);
+			 titleTD.appendChild(title);
 
-	getScripts: function() {
-		return [];
-	},
+			 show.appendChild(coverTD);
+			 show.appendChild(titleTD);
 
-	getStyles: function () {
-		return ["PlexDeck.css"];
-	},
+			 table.appendChild(show);
+		 });
+	 }
+	 return table;
+ },
 
-	// Load translations files
-	getTranslations: function() {
-		//FIXME: This can be load a one file javascript definition
-		return {
-			en: "translations/en.json",
-			es: "translations/es.json"
-		};
-	},
+ getScripts: function() {
+	 return [];
+ },
 
-	processData: function(data) {
-		var self = this;
-		this.dataRequest = data;
-		if (this.loaded === false) { self.updateDom(self.config.animationSpeed) ; }
-		this.loaded = true;
+ getStyles: function () {
+	 return ["PlexDeck.css"];
+ },
 
-		// the data if load
-		// send notification to helper
-		// this.sendSocketNotification("plexdeck-NOTIFICATION_TEST", data);
-	},
+ // Load translations files
+ getTranslations: function() {
+	 //FIXME: This can be load a one file javascript definition
+	 return {
+		 en: "translations/en.json",
+		 es: "translations/es.json"
+	 };
+ },
 
-	// socketNotificationReceived from helper
-	socketNotificationReceived: function (notification, payload) {
-		if(notification === "plexdeck-NOTIFICATION_TEST") {
-			// set dataNotification
-			this.dataNotification = payload;
-			this.updateDom();
-		}
-	},
+ processData: function(data) {
+	 var self = this;
+	 this.dataRequest = data;
+	 if (this.loaded === false) { self.updateDom(self.config.animationSpeed); }
+	 this.loaded = true;
+
+	 // the data if load
+	 // send notification to helper
+	 // this.sendSocketNotification("plexdeck-NOTIFICATION_TEST", data);
+ },
+
+ // socketNotificationReceived from helper
+ socketNotificationReceived: function (notification, payload) {
+	 if(notification === "plexdeck-NOTIFICATION_TEST") {
+		 // set dataNotification
+		 this.dataNotification = payload;
+		 this.updateDom();
+	 }
+ },
+
+ sortByLatest: function(a,b){
+		if (a.originallyAvailableAt > b.originallyAvailableAt)
+			return -1;
+		if (a.originallyAvailableAt < b.originallyAvailableAt)
+			return 1;
+		return 0;
+ },
 });
